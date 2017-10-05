@@ -1,0 +1,163 @@
+#!/bin/bash
+###############################################################################
+# check_checksum
+#
+# Monitoring files against a reference checksum
+###############################################################################
+# Copyright (c) 2017 NETWAYS GmbH <info@netways.de>
+#               2017 Markus Frosch <markus.frosch@netways.de>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+###############################################################################
+
+set -e
+
+# internals
+modes_supported=(md5 sha1 sha256 sha512)
+normal_exit=
+
+# config by options
+checksums=
+files=()
+mode=sha512
+path=
+
+print_usage() {
+    echo
+    echo "Usage: $0 -c <checksum file> -p <path> [-m <mode>] [-f <file>]"
+    echo
+}
+
+print_help() {
+    print_usage
+    echo "Required options:"
+    echo " -c <checksum file>  The reference file containing checksums"
+    echo
+    echo "Optional options:"
+    echo " -m <type>           The checksum mode (Default: $mode)"
+    echo " -p <path>           Path to change to before testing files"
+    echo " -f <file>           An actual file that must be checked for"
+    echo "                     (It's an error when the checksum file does not"
+    echo "                      contain a checksum for it) - can be repeated"
+    echo
+    echo "Supported modes for checksum: ${modes_supported[*]}"
+    echo
+    echo "Example:"
+    echo "  echo test > testfile.txt"
+    echo "  sha1sum testfile.txt > checksums"
+    echo "  ./check_checksum -c checksums -p \`pwd\`"
+    echo
+    exit 3
+}
+
+finish() {
+    if [ -z "$normal_exit" ]; then
+        echo "Unexpected exit!"
+        exit 3
+    fi
+}
+
+plugin_exit() {
+    local rc="$1"
+    local message="$2"
+    shift 2
+
+    if [ $rc -eq 0 ]; then
+        echo -n "CHECKSUM OK - "
+    elif [ $rc -eq 1 ]; then
+        echo -n "CHECKSUM WARNING - "
+    elif [ $rc -eq 2 ]; then
+        echo -n "CHECKSUM CRITICAL - "
+    else
+        echo -n "CHECKSUM UNKNOWN - "
+    fi
+
+    printf "$message\n" "$@"
+    normal_exit=1
+    exit "$rc"
+}
+
+trap finish EXIT SIGINT SIGTERM
+
+# parse options
+while getopts ":hc:p:m:f:" opt; do
+  case "$opt" in
+    h)
+      print_help
+      ;;
+    c)
+      checksums="$OPTARG"
+      ;;
+    p)
+      path="$OPTARG"
+      ;;
+    m)
+      mode="$OPTARG"
+      ;;
+    f)
+      files+=("$OPTARG")
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG"
+      print_usage
+      exit 3
+      ;;
+  esac
+done
+
+if [ -z "$checksums" ]; then
+    plugin_exit 3 "checksum file needs to be specified!"
+elif [ ! -r "$checksums" ]; then
+    plugin_exit 3 "checksum file can not be read: %s" "$checksums"
+elif [ ! -s "$checksums" ]; then
+    plugin_exit 3 "checksum file seems to be empty: %s" "$checksums"
+fi
+
+if [ -n "$path" ]; then
+    if ! cd "$path"; then
+        plugin_exit 3 "could not change directory to: %s" "$path"
+    fi
+fi
+
+# validate mode
+for mode_a in "${modes_supported[@]}"; do
+    [ "$mode" = "$mode_a" ] && break || continue
+done
+if [ "$mode" != "$mode_a" ]; then
+    plugin_exit 3 "Checksum mode '%s' is not supported!" "$mode"
+fi
+
+# check if checksum tool is installed
+if ! checksumtool=`which "${mode}sum" 2>/dev/null`; then
+    plugin_exit 3 "Checksum command %s could not be found!" "${mode}sum"
+fi
+
+# resolve checksum location
+checksum_file="$(readlink -f "$checksums")"
+
+# build command to run
+checksumcmd=("$checksumtool" "--strict" "-c" "$checksum_file")
+
+if output="$("${checksumcmd[@]}" 2>&1)"; then
+    for file in "${files[@]}"; do
+        if ! echo "$output" | cut -d: -f1 | grep -F "$file"; then
+            plugin_exit 2 "File '%s' must be validated by checksum!" "$file"
+        fi
+    done
+
+    plugin_exit 0 "Checksums match\n%s" "$output"
+else
+    plugin_exit 2 "Checksums do not match\n%s" "$output"
+fi
