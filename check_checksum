@@ -25,6 +25,7 @@
 set -e
 
 # internals
+version='0.1.0'
 modes_supported=(md5 sha1 sha256 sha512)
 normal_exit=
 
@@ -42,6 +43,8 @@ print_usage() {
 
 print_help() {
     print_usage
+    echo "Version: $version"
+    echo
     echo "Required options:"
     echo " -c <checksum file>  The reference file containing checksums"
     echo
@@ -92,8 +95,13 @@ plugin_exit() {
 trap finish EXIT SIGINT SIGTERM
 
 # parse options
-while getopts ":hc:p:m:f:" opt; do
+while getopts ":hVc:p:m:f:" opt; do
   case "$opt" in
+    V)
+      echo "Version $version"
+      normal_exit=1
+      exit 3
+      ;;
     h)
       print_help
       ;;
@@ -111,6 +119,7 @@ while getopts ":hc:p:m:f:" opt; do
       ;;
     \?)
       echo "Invalid option: -$OPTARG"
+      normal_exit=1
       print_usage
       exit 3
       ;;
