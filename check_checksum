@@ -34,6 +34,7 @@ checksums=
 files=()
 mode=sha512
 path=
+checksumopt=()
 
 print_usage() {
     echo
@@ -54,6 +55,8 @@ print_help() {
     echo " -f <file>           An actual file that must be checked for"
     echo "                     (It's an error when the checksum file does not"
     echo "                      contain a checksum for it) - can be repeated"
+    echo " -S                  Enable --strict mode on *sum programs"
+    echo "                     (Only supported in recent versions)"
     echo
     echo "Supported modes for checksum: ${modes_supported[*]}"
     echo
@@ -95,7 +98,7 @@ plugin_exit() {
 trap finish EXIT SIGINT SIGTERM
 
 # parse options
-while getopts ":hVc:p:m:f:" opt; do
+while getopts ":hVSc:p:m:f:" opt; do
   case "$opt" in
     V)
       echo "Version $version"
@@ -116,6 +119,9 @@ while getopts ":hVc:p:m:f:" opt; do
       ;;
     f)
       files+=("$OPTARG")
+      ;;
+    S)
+      checksumopt+=("--strict")
       ;;
     \?)
       echo "Invalid option: -$OPTARG"
@@ -157,7 +163,7 @@ fi
 checksum_file="$(readlink -f "$checksums")"
 
 # build command to run
-checksumcmd=("$checksumtool" "--strict" "-c" "$checksum_file")
+checksumcmd=("$checksumtool" "${checksumopt[@]}" "-c" "$checksum_file")
 
 if output="$("${checksumcmd[@]}" 2>&1)"; then
     for file in "${files[@]}"; do

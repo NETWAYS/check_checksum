@@ -39,6 +39,17 @@ for method in md5 sha1 sha256 sha512; do
     fi
 done
 
+echo "Testing strict mode"
+pushd "$TEMPDIR"
+sha256sum *.txt | tee checksum.unstrict
+echo "000 bla.txt" | tee -a checksum.unstrict
+popd
+# this will pass in non-strict mode...
+./check_checksum -c "$TEMPDIR"/checksum.unstrict -p "$TEMPDIR" -m "sha256"
+if ./check_checksum -c "$TEMPDIR"/checksum.unstrict -p "$TEMPDIR" -m "sha256" -S; then
+    echo "Check should have failed"; false
+fi
+
 echo "Testing relative filenames"
 pushd "$TEMPDIR"
 sha256sum *.txt | tee checksum.relative
