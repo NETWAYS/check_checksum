@@ -58,7 +58,7 @@ print_help() {
     echo "Optional options:"
     echo " -m <type>           The checksum mode (Default: $mode)"
     echo " -p <path>           Path to change to before testing files"
-    echo " -f <file>           An actual file that must be checked for"
+    echo " -f <file>           An actual file that must be checked for, can be an HTTP(s) URL"
     echo "                     (It's an error when the checksum file does not"
     echo "                      contain a checksum for it) - can be repeated"
     echo " -S                  Enable --strict mode on *sum programs"
@@ -157,6 +157,8 @@ while getopts ":hVSc:C:p:m:f:" opt; do
   esac
 done
 
+files_cached=()
+
 count_checksums="${#checksums[@]}"
 if [ -n "$checksum_file" ]; then
   if [ ! -r "$checksum_file" ]; then
@@ -171,11 +173,25 @@ elif [ "$count_checksums" -gt 0 ]; then
     plugin_exit 3 "Count of checksums (-C) does not match files (-f)!"
   fi
 
+  for file in "${files[@]}"; do
+    if [[ "$file" = http://* ]] || [[ "$file" = https://* ]]; then
+      cache="$(mktemp)"
+      temp_files+=("$cache")
+      #echo "Downloading file $file to $cache"
+      if ! curl_output="$(curl -LsS --fail "$file" -o "$cache" 2>&1)"; then
+        plugin_exit 3 'Download of remote file %s failed:\n%s' "$file" "$curl_output"
+      fi
+      files_cached+=("$cache")
+    else
+      files_cached+=("$file")
+    fi
+  done
+
   checksum_file="$(mktemp)"
   temp_files+=("$checksum_file")
 
   for i in $(seq 0 $((count_checksums - 1))); do
-    printf '%s  %s\n' "${checksums[$i]}" "${files[$i]}" >> "$checksum_file"
+    printf '%s  %s\n' "${checksums[$i]}" "${files_cached[$i]}" >> "$checksum_file"
   done
 else
   plugin_exit 3 "Please specify -c or -C with checksums."
@@ -211,9 +227,17 @@ checksum_file="$(readlink -f "$checksum_file")"
 checksumcmd=("$checksumtool" "${checksumopt[@]}" "-c" "$checksum_file")
 
 if output="$("${checksumcmd[@]}" 2>&1)"; then
-    for file in "${files[@]}"; do
-        if ! echo "$output" | cut -d: -f1 | grep -qF "$file"; then
-            plugin_exit 2 "File '%s' must be validated by checksum!" "$file"
+    count_files="${#files[@]}"
+    for i in $(seq 0 $((count_files - 1))); do
+        file="${files[$i]}"
+
+        if [ -n "${files_cached[$i]}" ]; then
+            cache="${files_cached[$i]}"
+            output="${output//$cache/$file}"
+        fi
+
+        if ! echo "$output" | grep -qF "$file"; then
+            plugin_exit 2 "File '%s' must be validated by checksum!\\n%s" "$file" "$output"
         fi
     done
 

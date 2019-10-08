@@ -8,6 +8,8 @@ gen_random() {
     (< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c500)
 }
 
+: "${NETWORK_ENABLED:=1}"
+
 TEMPDIR="$(mktemp -d)"
 
 finish() {
@@ -72,5 +74,12 @@ while read -r line; do
 done < <(sha512sum "$TEMPDIR/"*.txt)
 
 ./check_checksum "${opt[@]}"
+
+if [ "${NETWORK_ENABLED}" -eq 1 ]; then
+  echo "Testing with remote file from GitHub"
+  ./check_checksum \
+    -C f7e0ec38f23911a02aaefd46df416289bfcb647b037334d722f0d9c611b232a2ede47fa75aa1a2a8f332aee95210bed8f738a1e9a949a9a9449faf17c800cd60 \
+    -f https://github.com/NETWAYS/check_checksum/raw/master/test/fixture.txt
+fi
 
 echo "All tests completed successfully!"

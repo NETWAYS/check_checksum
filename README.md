@@ -26,8 +26,13 @@ Create some files to checksum:
     ./check_checksum -m sha512 -c /etc/icinga2/plugins/checksum-app.sha512sum \
       -f /var/cache/app/importantfiles/verifyimportant.data
 
-    ./check_checksum -m sha512 -C 3d16674888b7788569056486c0340f2855ed787b656216a542757e2a34255cfa7f6d790f76561599ad843803c61e0051120eb6454a0cfc712b2a2c356e245ac1 \
+    ./check_checksum -m sha512 \
+      -C 3d16674888b7788569056486c0340f2855ed787b656216a542757e2a34255cfa7f6d790f76561599ad843803c61e0051120eb6454a0cfc712b2a2c356e245ac1 \
       -f /var/cache/app/importantfiles/verifyimportant.data
+
+    ./check_checksum -m sha512 \
+      -C f7e0ec38f23911a02aaefd46df416289bfcb647b037334d722f0d9c611b232a2ede47fa75aa1a2a8f332aee95210bed8f738a1e9a949a9a9449faf17c800cd60 \
+      -f https://github.com/NETWAYS/check_checksum/raw/master/test/fixture.txt
 
 For full help see:
 
