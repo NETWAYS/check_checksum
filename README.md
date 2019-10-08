@@ -7,7 +7,6 @@ Testing files against a checksum reference with an Icinga Plugin
 
 You only need `bash` and the common GNU tools for checksums like:
 
-* `md5sum`
 * `sha1sum`
 * `sha256sum`
 * `sha512sum`
