@@ -30,7 +30,7 @@ modes_supported=(md5 sha1 sha256 sha512)
 normal_exit=
 
 # config by options
-checksums=
+checksum_file=
 files=()
 mode=sha512
 path=
@@ -110,7 +110,7 @@ while getopts ":hVSc:p:m:f:" opt; do
       print_help
       ;;
     c)
-      checksums="$OPTARG"
+      checksum_file="$OPTARG"
       ;;
     p)
       path="$OPTARG"
@@ -133,12 +133,12 @@ while getopts ":hVSc:p:m:f:" opt; do
   esac
 done
 
-if [ -z "$checksums" ]; then
+if [ -z "$checksum_file" ]; then
     plugin_exit 3 "checksum file needs to be specified!"
-elif [ ! -r "$checksums" ]; then
-    plugin_exit 3 "checksum file can not be read: %s" "$checksums"
-elif [ ! -s "$checksums" ]; then
-    plugin_exit 3 "checksum file seems to be empty: %s" "$checksums"
+elif [ ! -r "$checksum_file" ]; then
+    plugin_exit 3 "checksum file can not be read: %s" "$checksum_file"
+elif [ ! -s "$checksum_file" ]; then
+    plugin_exit 3 "checksum file seems to be empty: %s" "$checksum_file"
 fi
 
 if [ -n "$path" ]; then
@@ -165,7 +165,7 @@ if ! checksumtool="$(command -v "${mode}sum" 2>/dev/null)"; then
 fi
 
 # resolve checksum location
-checksum_file="$(readlink -f "$checksums")"
+checksum_file="$(readlink -f "$checksum_file")"
 
 # build command to run
 checksumcmd=("$checksumtool" "${checksumopt[@]}" "-c" "$checksum_file")
