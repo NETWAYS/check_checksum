@@ -8,7 +8,7 @@ gen_random() {
     (< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c500)
 }
 
-TEMPDIR=`mktemp -d`
+TEMPDIR="$(mktemp -d)"
 
 finish() {
     rm -rf "$TEMPDIR"
@@ -41,7 +41,7 @@ done
 
 echo "Testing strict mode"
 pushd "$TEMPDIR"
-sha256sum *.txt | tee checksum.unstrict
+sha256sum ./*.txt | tee checksum.unstrict
 echo "000 bla.txt" | tee -a checksum.unstrict
 popd
 # this will pass in non-strict mode...
@@ -52,7 +52,7 @@ fi
 
 echo "Testing relative filenames"
 pushd "$TEMPDIR"
-sha256sum *.txt | tee checksum.relative
+sha256sum ./*.txt | tee checksum.relative
 popd
 ./check_checksum -c "$TEMPDIR"/checksum.relative -p "$TEMPDIR" -m "sha256"
 

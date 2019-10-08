@@ -80,17 +80,18 @@ plugin_exit() {
     local message="$2"
     shift 2
 
-    if [ $rc -eq 0 ]; then
+    if [ "$rc" -eq 0 ]; then
         echo -n "CHECKSUM OK - "
-    elif [ $rc -eq 1 ]; then
+    elif [ "$rc" -eq 1 ]; then
         echo -n "CHECKSUM WARNING - "
-    elif [ $rc -eq 2 ]; then
+    elif [ "$rc" -eq 2 ]; then
         echo -n "CHECKSUM CRITICAL - "
     else
         echo -n "CHECKSUM UNKNOWN - "
     fi
 
-    printf "$message\n" "$@"
+    # shellcheck disable=SC2059
+    printf "$message\\n" "$@"
     normal_exit=1
     exit "$rc"
 }
@@ -148,14 +149,18 @@ fi
 
 # validate mode
 for mode_a in "${modes_supported[@]}"; do
-    [ "$mode" = "$mode_a" ] && break || continue
+    if [ "$mode" = "$mode_a" ]; then
+      break
+    else
+      continue
+    fi
 done
 if [ "$mode" != "$mode_a" ]; then
     plugin_exit 3 "Checksum mode '%s' is not supported!" "$mode"
 fi
 
 # check if checksum tool is installed
-if ! checksumtool=`which "${mode}sum" 2>/dev/null`; then
+if ! checksumtool="$(command -v "${mode}sum" 2>/dev/null)"; then
     plugin_exit 3 "Checksum command %s could not be found!" "${mode}sum"
 fi
 
@@ -172,7 +177,7 @@ if output="$("${checksumcmd[@]}" 2>&1)"; then
         fi
     done
 
-    plugin_exit 0 "Checksums match\n%s" "$output"
+    plugin_exit 0 "Checksums match\\n%s" "$output"
 else
-    plugin_exit 2 "Checksums do not match\n%s" "$output"
+    plugin_exit 2 "Checksums do not match\\n%s" "$output"
 fi
