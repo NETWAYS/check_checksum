@@ -3,10 +3,14 @@
 Specify the release version.
 
 ```
-VERSION=0.2.0
+VERSION=0.3.0
 ```
 
-Update the version in `check_checksum`.
+Update the version in `check_checksum`:
+
+```
+sed -i "s~^version=.*~version='$VERSION'~" check_checksum
+```
 
 ## Authors
 
