@@ -31,10 +31,12 @@ normal_exit=
 
 # config by options
 checksum_file=
+checksums=()
 files=()
 mode=sha512
 path=
 checksumopt=()
+temp_files=()
 
 print_usage() {
     echo
@@ -48,6 +50,10 @@ print_help() {
     echo
     echo "Required options:"
     echo " -c <checksum file>  The reference file containing checksums"
+    echo
+    echo "Alterative checksum input:"
+    echo " -C <checksum>       Checksum for the file, can be specified multiple times."
+    echo "                     Compares the checksums against files specified by -f."
     echo
     echo "Optional options:"
     echo " -m <type>           The checksum mode (Default: $mode)"
@@ -69,6 +75,9 @@ print_help() {
 }
 
 finish() {
+    for file in "${temp_files[@]}"; do
+      rm -f "$file"
+    done
     if [ -z "$normal_exit" ]; then
         echo "Unexpected exit!"
         exit 3
@@ -99,7 +108,7 @@ plugin_exit() {
 trap finish EXIT SIGINT SIGTERM
 
 # parse options
-while getopts ":hVSc:p:m:f:" opt; do
+while getopts ":hVSc:C:p:m:f:" opt; do
   case "$opt" in
     V)
       echo "Version $version"
@@ -112,6 +121,15 @@ while getopts ":hVSc:p:m:f:" opt; do
     c)
       checksum_file="$OPTARG"
       ;;
+    C)
+      if [ -z "$OPTARG" ]; then
+        echo "Option value must not be empty: -C"
+        normal_exit=1
+        print_usage
+        exit 3
+      fi
+      checksums+=("$OPTARG")
+      ;;
     p)
       path="$OPTARG"
       ;;
@@ -119,6 +137,12 @@ while getopts ":hVSc:p:m:f:" opt; do
       mode="$OPTARG"
       ;;
     f)
+    if [ -z "$OPTARG" ]; then
+      echo "Option value must not be empty: -f"
+      normal_exit=1
+      print_usage
+      exit 3
+    fi
       files+=("$OPTARG")
       ;;
     S)
@@ -133,12 +157,28 @@ while getopts ":hVSc:p:m:f:" opt; do
   esac
 done
 
-if [ -z "$checksum_file" ]; then
-    plugin_exit 3 "checksum file needs to be specified!"
-elif [ ! -r "$checksum_file" ]; then
-    plugin_exit 3 "checksum file can not be read: %s" "$checksum_file"
-elif [ ! -s "$checksum_file" ]; then
-    plugin_exit 3 "checksum file seems to be empty: %s" "$checksum_file"
+count_checksums="${#checksums[@]}"
+if [ -n "$checksum_file" ]; then
+  if [ ! -r "$checksum_file" ]; then
+      plugin_exit 3 "checksum file can not be read: %s" "$checksum_file"
+  elif [ ! -s "$checksum_file" ]; then
+      plugin_exit 3 "checksum file seems to be empty: %s" "$checksum_file"
+  elif [ "$count_checksums" -gt 0 ]; then
+      plugin_exit 3 "You can only specify -c or -C!"
+  fi
+elif [ "$count_checksums" -gt 0 ]; then
+  if [ "$count_checksums" -ne "${#files[@]}" ]; then
+    plugin_exit 3 "Count of checksums (-C) does not match files (-f)!"
+  fi
+
+  checksum_file="$(mktemp)"
+  temp_files+=("$checksum_file")
+
+  for i in $(seq 0 $(("$count_checksums" - 1))); do
+    printf '%s  %s\n' "${checksums[$i]}" "${files[$i]}" >> "$checksum_file"
+  done
+else
+  plugin_exit 3 "Please specify -c or -C with checksums."
 fi
 
 if [ -n "$path" ]; then

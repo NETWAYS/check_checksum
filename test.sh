@@ -62,4 +62,15 @@ if ./check_checksum -c "$TEMPDIR"/checksum.relative -p "$TEMPDIR" -m "sha256" -f
     echo "Check should have failed!"; false
 fi
 
+echo "Test with checksum on commandline"
+opt=()
+while read -r line; do
+  checksum="$(cut -d' ' -f1 <<<"$line")"
+  file="$(cut -d' ' -f3 <<<"$line")"
+
+  opt+=(-C "$checksum" -f "$file")
+done < <(sha512sum "$TEMPDIR/"*.txt)
+
+./check_checksum "${opt[@]}"
+
 echo "All tests completed successfully!"
