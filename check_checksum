@@ -39,70 +39,70 @@ checksumopt=()
 temp_files=()
 
 print_usage() {
-    echo
-    echo "Usage: $0 -c <checksum file> -p <path> [-m <mode>] [-f <file>]"
-    echo
+  echo
+  echo "Usage: $0 -c <checksum file> -p <path> [-m <mode>] [-f <file>]"
+  echo
 }
 
 print_help() {
-    print_usage
-    echo "Version: $version"
-    echo
-    echo "Required options:"
-    echo " -c <checksum file>  The reference file containing checksums"
-    echo
-    echo "Alterative checksum input:"
-    echo " -C <checksum>       Checksum for the file, can be specified multiple times."
-    echo "                     Compares the checksums against files specified by -f."
-    echo
-    echo "Optional options:"
-    echo " -m <type>           The checksum mode (Default: $mode)"
-    echo " -p <path>           Path to change to before testing files"
-    echo " -f <file>           An actual file that must be checked for, can be an HTTP(s) URL"
-    echo "                     (It's an error when the checksum file does not"
-    echo "                      contain a checksum for it) - can be repeated"
-    echo " -S                  Enable --strict mode on *sum programs"
-    echo "                     (Only supported in recent versions)"
-    echo
-    echo "Supported modes for checksum: ${modes_supported[*]}"
-    echo
-    echo "Example:"
-    echo "  echo test > testfile.txt"
-    echo "  sha1sum testfile.txt > checksums"
-    echo "  ./check_checksum -c checksums -p \`pwd\`"
-    echo
-    exit 3
+  print_usage
+  echo "Version: $version"
+  echo
+  echo "Required options:"
+  echo " -c <checksum file>  The reference file containing checksums"
+  echo
+  echo "Alterative checksum input:"
+  echo " -C <checksum>       Checksum for the file, can be specified multiple times."
+  echo "                     Compares the checksums against files specified by -f."
+  echo
+  echo "Optional options:"
+  echo " -m <type>           The checksum mode (Default: $mode)"
+  echo " -p <path>           Path to change to before testing files"
+  echo " -f <file>           An actual file that must be checked for, can be an HTTP(s) URL"
+  echo "                     (It's an error when the checksum file does not"
+  echo "                      contain a checksum for it) - can be repeated"
+  echo " -S                  Enable --strict mode on *sum programs"
+  echo "                     (Only supported in recent versions)"
+  echo
+  echo "Supported modes for checksum: ${modes_supported[*]}"
+  echo
+  echo "Example:"
+  echo "  echo test > testfile.txt"
+  echo "  sha1sum testfile.txt > checksums"
+  echo "  ./check_checksum -c checksums -p \`pwd\`"
+  echo
+  exit 3
 }
 
 finish() {
-    for file in "${temp_files[@]}"; do
-      rm -f "$file"
-    done
-    if [ -z "$normal_exit" ]; then
-        echo "Unexpected exit!"
-        exit 3
-    fi
+  for file in "${temp_files[@]}"; do
+    rm -f "$file"
+  done
+  if [ -z "$normal_exit" ]; then
+    echo "Unexpected exit!"
+    exit 3
+  fi
 }
 
 plugin_exit() {
-    local rc="$1"
-    local message="$2"
-    shift 2
+  local rc="$1"
+  local message="$2"
+  shift 2
 
-    if [ "$rc" -eq 0 ]; then
-        echo -n "CHECKSUM OK - "
-    elif [ "$rc" -eq 1 ]; then
-        echo -n "CHECKSUM WARNING - "
-    elif [ "$rc" -eq 2 ]; then
-        echo -n "CHECKSUM CRITICAL - "
-    else
-        echo -n "CHECKSUM UNKNOWN - "
-    fi
+  if [ "$rc" -eq 0 ]; then
+    echo -n "CHECKSUM OK - "
+  elif [ "$rc" -eq 1 ]; then
+    echo -n "CHECKSUM WARNING - "
+  elif [ "$rc" -eq 2 ]; then
+    echo -n "CHECKSUM CRITICAL - "
+  else
+    echo -n "CHECKSUM UNKNOWN - "
+  fi
 
-    # shellcheck disable=SC2059
-    printf "$message\\n" "$@"
-    normal_exit=1
-    exit "$rc"
+  # shellcheck disable=SC2059
+  printf "$message\\n" "$@"
+  normal_exit=1
+  exit "$rc"
 }
 
 trap finish EXIT SIGINT SIGTERM
@@ -162,11 +162,11 @@ files_cached=()
 count_checksums="${#checksums[@]}"
 if [ -n "$checksum_file" ]; then
   if [ ! -r "$checksum_file" ]; then
-      plugin_exit 3 "checksum file can not be read: %s" "$checksum_file"
+    plugin_exit 3 "checksum file can not be read: %s" "$checksum_file"
   elif [ ! -s "$checksum_file" ]; then
-      plugin_exit 3 "checksum file seems to be empty: %s" "$checksum_file"
+    plugin_exit 3 "checksum file seems to be empty: %s" "$checksum_file"
   elif [ "$count_checksums" -gt 0 ]; then
-      plugin_exit 3 "You can only specify -c or -C!"
+    plugin_exit 3 "You can only specify -c or -C!"
   fi
 elif [ "$count_checksums" -gt 0 ]; then
   if [ "$count_checksums" -ne "${#files[@]}" ]; then
@@ -198,26 +198,27 @@ else
 fi
 
 if [ -n "$path" ]; then
-    if ! cd "$path"; then
-        plugin_exit 3 "could not change directory to: %s" "$path"
-    fi
+  if ! cd "$path"; then
+    plugin_exit 3 "could not change directory to: %s" "$path"
+  fi
 fi
 
 # validate mode
 for mode_a in "${modes_supported[@]}"; do
-    if [ "$mode" = "$mode_a" ]; then
-      break
-    else
-      continue
-    fi
+  if [ "$mode" = "$mode_a" ]; then
+    break
+  else
+    continue
+  fi
 done
+
 if [ "$mode" != "$mode_a" ]; then
-    plugin_exit 3 "Checksum mode '%s' is not supported!" "$mode"
+  plugin_exit 3 "Checksum mode '%s' is not supported!" "$mode"
 fi
 
 # check if checksum tool is installed
 if ! checksumtool="$(command -v "${mode}sum" 2>/dev/null)"; then
-    plugin_exit 3 "Checksum command %s could not be found!" "${mode}sum"
+  plugin_exit 3 "Checksum command %s could not be found!" "${mode}sum"
 fi
 
 # resolve checksum location
@@ -227,21 +228,21 @@ checksum_file="$(readlink -f "$checksum_file")"
 checksumcmd=("$checksumtool" "${checksumopt[@]}" "-c" "$checksum_file")
 
 if output="$("${checksumcmd[@]}" 2>&1)"; then
-    count_files="${#files[@]}"
-    for i in $(seq 0 $((count_files - 1))); do
-        file="${files[$i]}"
+  count_files="${#files[@]}"
+  for i in $(seq 0 $((count_files - 1))); do
+    file="${files[$i]}"
 
-        if [ -n "${files_cached[$i]}" ]; then
-            cache="${files_cached[$i]}"
-            output="${output//$cache/$file}"
-        fi
+    if [ -n "${files_cached[$i]}" ]; then
+      cache="${files_cached[$i]}"
+      output="${output//$cache/$file}"
+    fi
 
-        if ! echo "$output" | grep -qF "$file"; then
-            plugin_exit 2 "File '%s' must be validated by checksum!\\n%s" "$file" "$output"
-        fi
-    done
+    if ! echo "$output" | grep -qF "$file"; then
+      plugin_exit 2 "File '%s' must be validated by checksum!\\n%s" "$file" "$output"
+    fi
+  done
 
-    plugin_exit 0 "Checksums match\\n%s" "$output"
+  plugin_exit 0 "Checksums match\\n%s" "$output"
 else
-    plugin_exit 2 "Checksums do not match\\n%s" "$output"
+  plugin_exit 2 "Checksums do not match\\n%s" "$output"
 fi
