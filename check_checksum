@@ -172,7 +172,7 @@ checksumcmd=("$checksumtool" "${checksumopt[@]}" "-c" "$checksum_file")
 
 if output="$("${checksumcmd[@]}" 2>&1)"; then
     for file in "${files[@]}"; do
-        if ! echo "$output" | cut -d: -f1 | grep -F "$file"; then
+        if ! echo "$output" | cut -d: -f1 | grep -qF "$file"; then
             plugin_exit 2 "File '%s' must be validated by checksum!" "$file"
         fi
     done
