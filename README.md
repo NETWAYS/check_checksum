@@ -1,5 +1,4 @@
-check_checksum
-==============
+# check_checksum
 
 Testing files against a checksum reference with an Icinga Plugin
 
