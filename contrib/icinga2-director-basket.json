@@ -1,0 +1,86 @@
+{
+  "Command": {
+    "check_checksum": {
+      "arguments": {
+        "-C": {
+          "description": "checksums for the file, can be specified multiple times. Compares the checksums against files specified by -f.",
+          "required": true,
+          "value": "$checksum$",
+          "order": "3"
+        },
+        "-f": {
+          "description": "An actual file that must be checked for, can be an HTTP(s) URL",
+          "required": true,
+          "value": "$filename$",
+          "order": "2"
+        }
+      },
+      "command": "check_checksum",
+      "fields": [
+        {
+          "datafield_id": 625,
+          "is_required": "y",
+          "var_filter": null
+        },
+        {
+          "datafield_id": 626,
+          "is_required": "y",
+          "var_filter": null
+        }
+      ],
+      "methods_execute": "PluginCheck",
+      "object_name": "check_checksum",
+      "object_type": "object",
+      "uuid": "a1055d8a-5f97-4fe1-8e4d-e80f5fc021e2"
+    }
+  },
+  "ServiceTemplate": {
+    "check_checksum template": {
+      "check_command": "check_checksum",
+      "fields": [],
+      "imports": [
+        "120m-Interval_template"
+      ],
+      "object_name": "check_checksum template",
+      "object_type": "template",
+      "uuid": "6369399f-a1da-4eeb-8e56-3f191aea8273"
+    },
+    "120m-Interval_template": {
+      "check_interval": 7200,
+      "enable_active_checks": true,
+      "enable_event_handler": true,
+      "enable_notifications": true,
+      "enable_passive_checks": true,
+      "enable_perfdata": true,
+      "fields": [],
+      "max_check_attempts": "3",
+      "object_name": "120m-Interval_template",
+      "object_type": "template",
+      "retry_interval": 60,
+      "uuid": "89cdc772-af1f-4f92-9c03-24082c8441ae",
+      "volatile": false
+    }
+  },
+  "Datafield": {
+    "625": {
+      "uuid": "19d4a50d-f1df-4921-b7f7-070228ca5246",
+      "varname": "checksum",
+      "caption": "checksum",
+      "description": "checksums for the file, can be specified multiple times. Compares the checksums against files specified by -f.",
+      "datatype": "Icinga\\Module\\Director\\DataType\\DataTypeString",
+      "format": null,
+      "settings": {},
+      "category": null
+    },
+    "626": {
+      "uuid": "228a2454-570f-451b-9448-995277982fce",
+      "varname": "filename",
+      "caption": "filename",
+      "description": "An actual file that must be checked for, can be an HTTP(s) URL",
+      "datatype": "Icinga\\Module\\Director\\DataType\\DataTypeString",
+      "format": null,
+      "settings": {},
+      "category": null
+    }
+  }
+}
