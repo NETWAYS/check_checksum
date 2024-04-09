@@ -1,0 +1,59 @@
+{
+  "Command": {
+    "check_checksum": {
+      "arguments": {
+        "-C": {
+          "description": "checksums for the file, can be specified multiple times. Compares the checksums against files specified by -f.",
+          "required": true,
+          "value": "$checksum$",
+          "order": "3"
+        },
+        "-f": {
+          "description": "An actual file that must be checked for, can be an HTTP(s) URL",
+          "required": true,
+          "value": "$filename$",
+          "order": "2"
+        }
+      },
+      "command": "check_checksum",
+      "fields": [
+        {
+          "datafield_id": 625,
+          "is_required": "y",
+          "var_filter": null
+        },
+        {
+          "datafield_id": 626,
+          "is_required": "y",
+          "var_filter": null
+        }
+      ],
+      "methods_execute": "PluginCheck",
+      "object_name": "check_checksum",
+      "object_type": "object",
+      "uuid": "a1055d8a-5f97-4fe1-8e4d-e80f5fc021e2"
+    }
+  },
+  "Datafield": {
+    "625": {
+      "uuid": "19d4a50d-f1df-4921-b7f7-070228ca5246",
+      "varname": "checksum",
+      "caption": "checksum",
+      "description": "checksums for the file, can be specified multiple times. Compares the checksums against files specified by -f.",
+      "datatype": "Icinga\\Module\\Director\\DataType\\DataTypeString",
+      "format": null,
+      "settings": {},
+      "category": null
+    },
+    "626": {
+      "uuid": "228a2454-570f-451b-9448-995277982fce",
+      "varname": "filename",
+      "caption": "filename",
+      "description": "An actual file that must be checked for, can be an HTTP(s) URL",
+      "datatype": "Icinga\\Module\\Director\\DataType\\DataTypeString",
+      "format": null,
+      "settings": {},
+      "category": null
+    }
+  }
+}
