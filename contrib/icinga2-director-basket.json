@@ -34,33 +34,6 @@
       "uuid": "a1055d8a-5f97-4fe1-8e4d-e80f5fc021e2"
     }
   },
-  "ServiceTemplate": {
-    "check_checksum template": {
-      "check_command": "check_checksum",
-      "fields": [],
-      "imports": [
-        "120m-Interval_template"
-      ],
-      "object_name": "check_checksum template",
-      "object_type": "template",
-      "uuid": "6369399f-a1da-4eeb-8e56-3f191aea8273"
-    },
-    "120m-Interval_template": {
-      "check_interval": 7200,
-      "enable_active_checks": true,
-      "enable_event_handler": true,
-      "enable_notifications": true,
-      "enable_passive_checks": true,
-      "enable_perfdata": true,
-      "fields": [],
-      "max_check_attempts": "3",
-      "object_name": "120m-Interval_template",
-      "object_type": "template",
-      "retry_interval": 60,
-      "uuid": "89cdc772-af1f-4f92-9c03-24082c8441ae",
-      "volatile": false
-    }
-  },
   "Datafield": {
     "625": {
       "uuid": "19d4a50d-f1df-4921-b7f7-070228ca5246",
