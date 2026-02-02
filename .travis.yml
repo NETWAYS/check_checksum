@@ -1,6 +1,0 @@
-language: bash
-sudo: false
-
-script:
-  - ./check_checksum -h || true
-  - ./test.sh
